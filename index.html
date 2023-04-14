@@ -1,0 +1,79 @@
+<html>
+    <head>
+        <title>Babylon.js sample code</title>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <style>
+            body,#renderCanvas { width: 100%; height: 100%;}
+        </style>
+    </head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script type="text/javascript">
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true);
+    
+        var createScene = function() {
+            // Create scene
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3.Black;
+           
+            const alpha =  Math.PI;
+            const beta = Math.PI;
+            const radius = 5;
+
+            // Create Camera
+            const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 0);
+            camera.setPosition(new BABYLON.Vector3(alpha, beta, radius));
+            camera.attachControl(canvas, true);
+            
+            // Create Light
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
+            
+            // Create Box
+            const box = BABYLON.MeshBuilder.CreateBox("box", {});
+            box.position.x = 0.5;
+            box.position.y = 1;
+
+            var boxMaterial = new BABYLON.StandardMaterial("material", scene);
+            boxMaterial.diffuseColor = BABYLON.Color3.Random();
+            box.material = boxMaterial;
+
+            box.actionManager = new BABYLON.ActionManager(scene);
+            box.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                BABYLON.ActionManager.OnPickTrigger, 
+                function (evt) {
+                    var sourceBox = evt.meshUnderPointer;
+
+                    //move the box upright
+                    sourceBox.position.x += 0.1;
+                    sourceBox.position.y += 0.1;
+
+                    //update the color
+                    boxMaterial.diffuseColor = BABYLON.Color3.Random();
+                }));
+
+            // Create Ground
+            var ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 4, height: 4});    
+
+            // return scene;
+            var xrPromise = scene.createDefaultXRExperienceAsync({
+                floorMeshes: [ground]
+            });
+            return xrPromise.then((xrExperience) => {
+                console.log("Done, WebXR is enabled.");
+                return scene;
+            });
+        }
+
+        // Render scene
+        // var sceneToRender = createScene();
+        // engine.runRenderLoop(function () {
+        //     sceneToRender.render();
+        // });
+        createScene().then(sceneToRender => {
+            engine.runRenderLoop(() => sceneToRender.render());
+        });
+    </script>
+</body>
+</html>
